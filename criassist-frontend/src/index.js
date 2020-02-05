@@ -12,7 +12,7 @@ import { StylesProvider, jssPreset } from "@material-ui/core/styles";
 const jss = create({ plugins: [...jssPreset().plugins, rtl()] });
 
 const client = new ApolloClient({
-  uri: "https://48p1r2roz4.sse.codesandbox.io"
+  uri: "http://localhost:5000/graphql"
 });
 
 ReactDOM.render(

@@ -7,29 +7,9 @@ import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
+import { useQuery } from "@apollo/react-hooks";
 
-const FORMS = [
-  {
-    _id: 1,
-    title: "فرم اول"
-  },
-  {
-    _id: 2,
-    title: "فرم دوم"
-  },
-  {
-    _id: 3,
-    title: "فرم سوم"
-  },
-  {
-    _id: 4,
-    title: "فرم چهارم"
-  },
-  {
-    _id: 5,
-    title: "فرم پنجم"
-  }
-];
+import { FORMS_LIST } from "../global/queries";
 
 const useStyles = makeStyles({
   container: {
@@ -49,9 +29,12 @@ const useStyles = makeStyles({
 
 const Home = props => {
   const classes = useStyles();
+  const { data, error, loading } = useQuery(FORMS_LIST);
+  if (error) return null;
+  if (loading) return <div>loading</div>;
   return (
     <Grid container className={classes.container} spacing={2}>
-      {FORMS.map(item => (
+      {data.forms.map(item => (
         <Grid key={item._id} item xs={3}>
           <Card className={classes.root}>
             <CardContent>

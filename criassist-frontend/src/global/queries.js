@@ -1,10 +1,10 @@
 import { gql } from "apollo-boost";
 
-export const EXCHANGE_RATES = gql(`
+export const FORMS_LIST = gql(`
   {
-    rates(currency: "USD") {
-      currency
-      rate
+    forms {
+      _id
+      title
     }
   }
 `);
