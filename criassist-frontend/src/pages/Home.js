@@ -1,4 +1,5 @@
 import React from "react";
+import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
@@ -59,7 +60,9 @@ const Home = props => {
               </Typography>
             </CardContent>
             <CardActions>
-              <Button size="small">جزئیات</Button>
+              <Button size="small" component={Link} to={`/ccagent/${item._id}`}>
+                جزئیات
+              </Button>
             </CardActions>
           </Card>
         </Grid>
