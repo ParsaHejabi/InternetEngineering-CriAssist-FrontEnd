@@ -11,8 +11,17 @@ import { StylesProvider, jssPreset } from "@material-ui/core/styles";
 // Configure JSS
 const jss = create({ plugins: [...jssPreset().plugins, rtl()] });
 
+const PORT = process.env.PORT || 5000;
+let url;
+
+if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+  url = `http://localhost:${PORT}/graphql`;
+} else {
+  url = `https://criassist.herokuapp.com/graphql`;
+}
+
 const client = new ApolloClient({
-  uri: "http://localhost:5000/graphql"
+  uri: url
 });
 
 ReactDOM.render(
