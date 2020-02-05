@@ -4,6 +4,12 @@ import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "@apollo/react-hooks";
 import * as serviceWorker from "./serviceWorker";
 import Routes from "./global/routes";
+import { create } from "jss";
+import rtl from "jss-rtl";
+import { StylesProvider, jssPreset } from "@material-ui/core/styles";
+
+// Configure JSS
+const jss = create({ plugins: [...jssPreset().plugins, rtl()] });
 
 const client = new ApolloClient({
   uri: "https://48p1r2roz4.sse.codesandbox.io"
@@ -11,7 +17,9 @@ const client = new ApolloClient({
 
 ReactDOM.render(
   <ApolloProvider client={client}>
-    <Routes />
+    <StylesProvider jss={jss}>
+      <Routes />
+    </StylesProvider>
   </ApolloProvider>,
   document.getElementById("root")
 );
