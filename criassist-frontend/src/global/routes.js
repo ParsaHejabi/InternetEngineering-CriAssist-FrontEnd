@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Home from "../pages/Home";
+import CCAgent from "../pages/CCAgent.js";
 
 const Routes = props => {
   return (
@@ -11,6 +12,9 @@ const Routes = props => {
         </Route>
         <Route exact path="/about">
           <div>about</div>
+        </Route>
+        <Route path="/ccagent/:id">
+          <CCAgent />
         </Route>
       </Switch>
     </Router>
