@@ -9,6 +9,8 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { useParams } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
+import { useQuery } from "@apollo/react-hooks";
+import { FORM_ANSWER } from "../global/queries";
 
 const useStyles = makeStyles({
     table: {
@@ -16,20 +18,32 @@ const useStyles = makeStyles({
     },
 });
 
+const GetOneAnswer = props => {
+    const { data, loading } = useQuery(FORM_ANSWER, {
+        variables: { "id": props }
+    });
+    return { data, loading }
+}
+
 export default function SimpleTable(props) {
     const classes = useStyles();
-    const formID = useParams().formid;
-    const answerID = useParams().id;
-    const data = (props.allData).find(element => (element._id === parseInt(answerID)))
-    const rows = [];
-    data.fields.forEach(field => {
-        rows.push(
-            <TableRow>
-                <TableCell align="right">{field.title}</TableCell>
-                <TableCell align="right">{field.value}</TableCell>
-            </TableRow>
-        );
-    })
+    var answerID = useParams().id;
+    var answer = GetOneAnswer(answerID);
+
+    var rows = [];
+    if (!answer.loading) {
+        var fieldKeys = Object.keys(answer.data.formAnswer.value);
+        var fieldVals = Object.values(answer.data.formAnswer.value);
+        fieldKeys.forEach(key => {
+            var fieldTitle = (props.form.form.fields).find(element => element.name === key)
+            rows.push(
+                <TableRow>
+                    <TableCell align="right">{fieldTitle.title}</TableCell>
+                    <TableCell align="right">{answer.data.formAnswer.value[key]}</TableCell>
+                </TableRow>
+            );
+        })
+    }
 
     return (
         <div>

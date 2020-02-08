@@ -10,25 +10,29 @@ export const FORMS_LIST = gql(`
 `);
 
 //Answers where formID=$id
-export const FORM_DATA = gql(`
+export const FORM_ALLDATA = gql(`
 query Answers($id: ID!){
-  answers(formID: $id){
+  formAnswersWithGivenFormId(formId: $id){
     _id
-    fields {
-      name
-      title
-      value
-    }
+    value
+  }
+}
+`);
+
+export const FORM_ANSWER = gql(`
+query Answer($id: ID!){
+  formAnswer(_id: $id){
+    value
   }
 }
 `);
 
 export const FORM_FIELDS = gql(`
-query Forms($id: ID!){
-  forms(_id: $id){
+query FormField($id: ID!){
+  form(_id: $id){
     _id
     title
-    fields {
+    fields{
       name
       title
       type

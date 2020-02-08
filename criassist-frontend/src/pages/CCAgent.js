@@ -14,15 +14,21 @@ import Paper from '@material-ui/core/Paper';
 import { useParams, Link } from 'react-router-dom';
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import FormDetails from './FormDetails';
+import { useQuery } from "@apollo/react-hooks";
+import { FORM_FIELDS, FORM_ALLDATA } from "../global/queries";
 
 
-
-function getRows(forms) {
+function getRows(forms, fields) {
     const rows1 = [];
+    var fieldsNames = fields.map(y => y.name);
+
     forms.forEach(form => {
         const row = [];
-        form.fields.forEach(field => {
-            row.push(field.value);
+        fieldsNames.forEach(temp => {
+            if (form.value[temp])
+                row.push(form.value[temp]);
+            else
+                row.push(" ");
         })
         rows1.push(row);
     })
@@ -54,24 +60,17 @@ function getSorting(order, orderBy) {
 }
 
 function getHead(fields) {
-    // var headCells = [
-    //     { id: 'name', numeric: false, disablePadding: true, label: 'Dessert (100g serving)' },
-    //     { id: 'dude', numeric: true, disablePadding: false, label: 'Dudes (num)' },
-    //     { id: 'calories', numeric: true, disablePadding: false, label: 'Calories' },
-    //     { id: 'fat', numeric: true, disablePadding: false, label: 'Fat (g)' },
-    //     { id: 'carbs', numeric: true, disablePadding: false, label: 'Carbs (g)' },
-    //     { id: 'protein', numeric: true, disablePadding: false, label: 'Protein (g)' },
-    // ];
-
     var headCells = [];
-    fields.forEach(item => {
-        headCells.push({
-            id: item.name,
-            numeric: (item.type === "Number" ? true : false),
-            disablePadding: true,
-            label: item.title
+    if (fields) {
+        fields.forEach(item => {
+            headCells.push({
+                id: item.name,
+                numeric: (item.type === "Number" ? true : false),
+                disablePadding: true,
+                label: item.title
+            })
         })
-    })
+    }
 
     return headCells;
 }
@@ -207,9 +206,9 @@ function EnhancedTable(props) {
     const [dense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-    const rows = getRows(props.allData);
+    const rows = getRows(props.allData, props.form.form.fields);
 
-    const headCells = getHead(props.form.fields);
+    const headCells = getHead(props.form.form.fields);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -284,7 +283,7 @@ function EnhancedTable(props) {
                                             key={index}
                                             selected={isItemSelected}
                                             component={Link}
-                                            to={`/ccagent/${props.form.formId}/${rowIndex}`}
+                                            to={`/ccagent/${props.form.form._id}/${rowIndex}`}
                                         >
                                             {cells}
                                         </TableRow>
@@ -312,272 +311,54 @@ function EnhancedTable(props) {
     );
 }
 
-function getForm(formID) {
-    var form1 = {
-        "formId": 1,
-        "_id": 1,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Niki"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Nazaran"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "22"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1998"
-            },
-        ]
-    }
-    var form2 = {
-        "formId": 1,
-        "_id": 2,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Reza"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Ferdosi"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "21"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1999"
-            },
-        ]
-    }
-    var form3 = {
-        "formId": 1,
-        "_id": 3,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Parsa"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Hejabi"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "21"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1998"
-            },
-        ]
-    }
-    var form4 = {
-        "formId": 1,
-        "_id": 4,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Niki"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Nazaran"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "22"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1998"
-            },
-        ]
-    }
-    var form5 = {
-        "formId": 1,
-        "_id": 5,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Reza"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Ferdosi"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "21"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1999"
-            },
-        ]
-    }
-    var form6 = {
-        "formId": 1,
-        "_id": 6,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Parsa"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Hejabi"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "21"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1998"
-            },
-        ]
-    }
-    var form7 = {
-        "formId": 1,
-        "_id": 7,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Niki"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Nazaran"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "22"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1998"
-            },
-        ]
-    }
-    var form8 = {
-        "formId": 1,
-        "_id": 8,
-        "title": "Form 1",
-        "fields": [
-            {
-                "name": "FirstName",
-                "title": "First Name",
-                "type": "Text",
-                "value": "Reza"
-            },
-            {
-                "name": "LastName",
-                "title": "Last Name",
-                "type": "Text",
-                "value": "Ferdosi"
-            },
-            {
-                "name": "Age",
-                "title": "Age",
-                "type": "Number",
-                "value": "21"
-            },
-            {
-                "name": "BirthYear",
-                "title": "Year of Birth",
-                "type": "Number",
-                "value": "1999"
-            },
-        ]
-    }
-    var forms = [form1, form2, form3, form4, form5, form6, form7, form8];
-    return forms;
+const GetFormTemplate = props => {
+    const { data, loading } = useQuery(FORM_FIELDS, {
+        variables: { "id": props }
+    });
+    return { data, loading }
+
+}
+
+const GetFormsData = props => {
+    const { data, loading } = useQuery(FORM_ALLDATA, {
+        variables: { "id": props }
+    });
+    return { data, loading }
 }
 
 export default function CCpage() {
     var formID = useParams().id;
-    //TODO: get the form
-    var forms = getForm(formID);
+    // const { data, loading } = useQuery(FORM_FIELDS, {
+    //     variables: { "id": formID }
+    // });
+    var formTemplate = GetFormTemplate(formID);
+
+    var forms = GetFormsData(formID);
+
+    var answersPage = <div>Loading</div>;
+    var detailsPage = <div>Loading</div>;
+    if (!formTemplate.loading && !forms.loading) {
+        if (!forms) {
+            answersPage = <div>No Answers Submitted For This Form.</div>;
+            detailsPage = <div>No Answers Submitted For This Form.</div>;
+        }
+        else {
+            answersPage = <EnhancedTable title={formTemplate.data.form.title} form={formTemplate.data} allData={forms.data.formAnswersWithGivenFormId} />;
+            detailsPage = <FormDetails title={formTemplate.data.form.title} form={formTemplate.data} />;
+        }
+
+    }
+
+
 
     return (
         <Router>
             <Switch>
                 <Route path="/ccagent/:formid/:id">
-                    <FormDetails allData={forms} title={forms[0].title} form={forms[0]} />
+                    {detailsPage}
                 </Route>
                 <Route path="/">
-                    <EnhancedTable title={forms[0].title} form={forms[0]} allData={forms} />
+                    {answersPage}
                 </Route>
             </Switch>
         </Router>
