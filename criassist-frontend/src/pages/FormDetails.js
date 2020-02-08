@@ -33,7 +33,6 @@ export default function SimpleTable(props) {
     var rows = [];
     if (!answer.loading) {
         var fieldKeys = Object.keys(answer.data.formAnswer.value);
-        var fieldVals = Object.values(answer.data.formAnswer.value);
         fieldKeys.forEach(key => {
             var fieldTitle = (props.form.form.fields).find(element => element.name === key)
             rows.push(

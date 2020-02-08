@@ -15,24 +15,81 @@ import { useParams, Link } from 'react-router-dom';
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import FormDetails from './FormDetails';
 import { useQuery } from "@apollo/react-hooks";
-import { FORM_FIELDS, FORM_ALLDATA } from "../global/queries";
+import { FORM_FIELDS, FORM_ALLDATA, AREA_NAMES, AREA_WITH_GIVEN_POINT } from "../global/queries";
+import Skeleton from '@material-ui/lab/Skeleton';
+import { Toolbar } from "@material-ui/core";
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import CloseIcon from '@material-ui/icons/Close';
+import moment from 'moment';
 
-
-function getRows(forms, fields) {
+function getRows(forms, fields, areaFilter, numberFilter, dateFilter) {
     const rows1 = [];
-    var fieldsNames = fields.map(y => y.name);
     var i = 1;
     forms.forEach(form => {
         const row = [];
         row.push(i);
         i++;
-        fieldsNames.forEach(temp => {
-            if (form.value[temp])
-                row.push(form.value[temp]);
-            else
-                row.push(" ");
+        var doPush = true;
+        fields.forEach(temp => {
+            if (!numberFilter.number && !dateFilter.date && !areaFilter.area) {
+                if (form.value[temp.name]) {
+                    if (temp.type.includes("Number"))
+                        row.push(parseFloat(form.value[temp.name]));
+                    else if (temp.type.includes("Date"))
+                        row.push(moment(new Date(form.value[temp.name])).format('YYYY MMMM Do'));
+                    else if (temp.type.includes("Location")) {
+                        var areas = "";
+                        if (form.value["Areas"])
+                            form.value["Areas"].forEach(area => areas = areas.concat(" ", area));
+                        row.push(areas);
+
+                    } else row.push(form.value[temp.name]);
+
+                } else
+                    row.push(" ");
+            } else {
+                if (numberFilter.field !== "" && numberFilter.number && numberFilter.field === temp.name) { // We are filtering this field
+                    if (parseFloat(form.value[temp.name]) === numberFilter.number) { // This form passes the filtering
+                        row.push(parseFloat(form.value[temp.name]));
+                    } else doPush = false;
+                }
+                if (dateFilter.field !== "" && dateFilter.date && dateFilter.field === temp.name) { // We are filtering this field
+                    if (form.value[temp.name] === dateFilter.date) { // This form passes the filtering
+                        row.push(moment(new Date(form.value[temp.name])).format('YYYY MMMM Do'));
+                    } else doPush = false;
+                }
+                if (areaFilter.field !== "" && areaFilter.area && areaFilter.field === temp.name) { // We are filtering this field
+                    if (form.value["Areas"].includes(areaFilter.area)) { // This form passes the filtering
+                        areas = "";
+                        if (form.value["Areas"])
+                            form.value["Areas"].forEach(area => areas = areas.concat(" ", area));
+                        row.push(areas);
+                    } else doPush = false;
+                }
+                if (!(numberFilter.field !== "" && numberFilter.number && numberFilter.field === temp.name) && !(areaFilter.field !== "" && areaFilter.area && areaFilter.field === temp.name) && !(dateFilter.field !== "" && dateFilter.date && dateFilter.field === temp.name)) {
+                    if (form.value[temp.name]) {
+                        if (temp.type.includes("Number"))
+                            row.push(parseFloat(form.value[temp.name]));
+                        else if (temp.type.includes("Date"))
+                            row.push(moment(new Date(form.value[temp.name])).format('YYYY MMMM Do'));
+                        else if (temp.type.includes("Location")) {
+                            areas = "";
+                            if (form.value["Areas"])
+                                form.value["Areas"].forEach(area => areas = areas.concat(" ", area));
+                            row.push(areas);
+
+                        } else row.push(form.value[temp.name]);
+
+                    } else
+                        row.push(" ");
+                }
+            }
         })
-        rows1.push(row);
+        if (doPush)
+            rows1.push(row);
     })
     return rows1;
 }
@@ -133,10 +190,8 @@ EnhancedTableHead.propTypes = {
     classes: PropTypes.object.isRequired,
     numSelected: PropTypes.number.isRequired,
     onRequestSort: PropTypes.func.isRequired,
-    //onSelectAllClick: PropTypes.func.isRequired,
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,
     orderBy: PropTypes.string.isRequired,
-    //rowCount: PropTypes.number.isRequired,
 };
 
 const useToolbarStyles = makeStyles(theme => ({
@@ -161,14 +216,205 @@ const useToolbarStyles = makeStyles(theme => ({
 
 const EnhancedTableToolbar = props => {
     const classes = useToolbarStyles();
-    const { formName } = props;
+    const { formName, fields, areaNames, allNumbers, allDates } = props;
+    const { setNumberFilter, setAreaFilter, setDateFilter } = props;
+    const [areaField, setAreaField] = React.useState('');
+    const [area, setArea] = React.useState('');
+    const [numberField, setnumberField] = React.useState('');
+    const [number, setnumber] = React.useState('');
+    const [dateField, setdateField] = React.useState('');
+    const [date, setdate] = React.useState('');
+    var areaFieldItems = [];
+    var areaItems = [];
+    var numberFieldItems = [];
+    var numberItems = [];
+    var dateFieldItems = [];
+    var dateItems = [];
+    var areaSection = <div></div>;
+    var numberSection = <div></div>;
+    var dateSection = <div></div>;
+    const handleAreaFieldChange = event => {
+        setAreaField(event.target.value);
+        setAreaFilter({
+            field: event.target.value,
+            area: area
+        });
+    };
+    const handleAreaChange = event => {
+        setArea(event.target.value);
+        setAreaFilter({
+            field: areaField,
+            area: event.target.value
+        });
+    };
+    const handlenumberFieldChange = event => {
+        setnumberField(event.target.value);
+        setNumberFilter({
+            field: event.target.value,
+            number: number
+        });
+    };
+    const handlenumberChange = event => {
+        setnumber(event.target.value);
+        setNumberFilter({
+            field: numberField,
+            number: event.target.value
+        });
+    };
+    const handledateFieldChange = event => {
+        setdateField(event.target.value);
+        setDateFilter({
+            field: event.target.value,
+            date: date
+        });
+    };
+    const handledateChange = event => {
+        setdate(event.target.value);
+        setDateFilter({
+            field: dateField,
+            date: event.target.value
+        });
+    };
+
+    if (fields.filter(element => element.type.includes("Location")).length > 0) {
+        fields.filter(element => element.type.includes("Location")).forEach(field => {
+            areaFieldItems.push(
+                <MenuItem value={field.name}>{field.title}</MenuItem>
+            );
+        })
+        areaNames.forEach(area => {
+            areaItems.push(
+                <MenuItem value={area.name}>{area.name}</MenuItem>
+            );
+        })
+        areaSection = (
+            <div>
+                <FormControl className={classes.formControl} >
+                    <InputLabel id="demo-simple-select-label">Area Field</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={areaField}
+                        onChange={handleAreaFieldChange}
+                    >
+                        {areaFieldItems}
+                    </Select>
+                </FormControl>
+                <FormControl className={classes.formControl}>
+                    <InputLabel id="demo-simple-select-label">Area</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={area}
+                        onChange={handleAreaChange}
+                    >
+                        {areaItems}
+                    </Select>
+                </FormControl>
+            </div>
+        );
+    }
+
+    if (fields.filter(element => element.type.includes("Number")).length > 0) {
+        fields.filter(element => element.type.includes("Number")).forEach(field => {
+            numberFieldItems.push(
+                <MenuItem value={field.name}>{field.title}</MenuItem>
+            );
+        })
+        allNumbers.forEach(number => {
+            numberItems.push(
+                <MenuItem value={number}>{number}</MenuItem>
+            );
+        })
+        numberSection = (
+            <div>
+                <FormControl className={classes.formControl} >
+                    <InputLabel id="demo-simple-select-label">Number Field</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={numberField}
+                        onChange={handlenumberFieldChange}
+                    >
+                        {numberFieldItems}
+                    </Select>
+                </FormControl>
+                <FormControl className={classes.formControl}>
+                    <InputLabel id="demo-simple-select-label">Number</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={number}
+                        onChange={handlenumberChange}
+                    >
+                        {numberItems}
+                    </Select>
+                </FormControl>
+            </div>
+        );
+    }
+
+    if (fields.filter(element => element.type.includes("Date")).length > 0) {
+        fields.filter(element => element.type.includes("Date")).forEach(field => {
+            dateFieldItems.push(
+                <MenuItem value={field.name}>{field.title}</MenuItem>
+            );
+        })
+        allDates.forEach(date => {
+            dateItems.push(
+                <MenuItem value={date}>{date}</MenuItem>
+            );
+        })
+        dateSection = (
+            <div>
+                <FormControl className={classes.formControl} >
+                    <InputLabel id="demo-simple-select-label">Date Field</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={dateField}
+                        onChange={handledateFieldChange}
+                    >
+                        {dateFieldItems}
+                    </Select>
+                </FormControl>
+                <FormControl className={classes.formControl}>
+                    <InputLabel id="demo-simple-select-label">Date</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={date}
+                        onChange={handledateChange}
+                    >
+                        {dateItems}
+                    </Select>
+                </FormControl>
+            </div>
+        );
+    }
 
     return (
-        <div>
+        <Toolbar>
             <Typography className={classes.title} variant="h5" id="tableTitle">
                 {formName}
             </Typography>
-        </div>
+            {areaSection}
+            {numberSection}
+            {dateSection}
+            <CloseIcon
+                onClick={e => {
+                    setDateFilter({});
+                    setAreaFilter({});
+                    setNumberFilter({});
+                    setnumber("");
+                    setnumberField("");
+                    setdate("");
+                    setdateField("");
+                    setArea("");
+                    setAreaField("");
+                }}
+            />
+        </Toolbar>
     );
 };
 
@@ -198,10 +444,16 @@ const useStyles = makeStyles(theme => ({
         top: 20,
         width: 1,
     },
+    formControl: {
+        margin: theme.spacing(1),
+        minWidth: 120,
+    },
+    selectEmpty: {
+        marginTop: theme.spacing(2),
+    },
 }));
 
 function getSumRow(headFields, answers) {
-    var numericFields = headFields.find(element => element.type.includes("Number"))
     var cells = [];
     headFields.forEach(field => {
         if (field.type.includes("Number")) {
@@ -231,6 +483,44 @@ function getSumRow(headFields, answers) {
     return cells;
 }
 
+function prepData(allData, allNumbers, allDates, locationFields, fields) {
+    console.log(allData);
+    console.log(fields)
+
+    fields.forEach(field => {
+        if (field.type.includes("Number"))
+            allData.forEach(data => {
+                if (data.value[field.name] && !allNumbers.includes(parseFloat(data.value[field.name])))
+                    allNumbers.push(parseFloat(data.value[field.name]));
+            })
+        else if (field.type.includes("Date"))
+            allData.forEach(data => {
+                if (data.value[field.name] && !allDates.includes(moment(new Date(data.value[field.name])).format('YYYY MMMM Do')))
+                    allDates.push(moment(new Date(data.value[field.name])).format('YYYY MMMM Do'));
+            })
+    })
+
+
+    locationFields.forEach(locationField => {
+        var withLocation = allData.filter(element => element.value[locationField.name]);
+        withLocation.forEach(data => {
+            var areaNames = GetAreaWithGivenPoint({
+                "lat": data.value[locationField.name].lat,
+                "long": data.value[locationField.name].long
+            })
+            var temp = data;
+            if (!areaNames.loading) {
+                temp.value["Areas"] = areaNames.data.areaNamesOfGivenPoint;
+                var index = allData.indexOf(data);
+                allData[index] = temp;
+
+            }
+
+        })
+    })
+    return { allData, allNumbers, allDates };
+}
+
 function EnhancedTable(props) {
     const classes = useStyles();
     const [order, setOrder] = React.useState('asc');
@@ -239,12 +529,29 @@ function EnhancedTable(props) {
     const [page, setPage] = React.useState(0);
     const [dense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [areaFilter, setAreaFilter] = React.useState({});
+    const [numberFilter, setNumberFilter] = React.useState({});
+    const [dateFilter, setDateFilter] = React.useState({});
 
-    const rows = getRows(props.allData, props.form.form.fields);
+    var areaNames = props.areaNames;
+    var allData = props.allData;
+    var locFields = props.form.form.fields.filter(element => element.type.includes("Location"));
+    var allNumbers = [];
+    var allDates = [];
+    var all;
+
+    all = prepData(allData, allNumbers, allDates, locFields, props.form.form.fields);
+
+    allData = all.allData;
+    allNumbers = all.allNumbers;
+    allDates = all.allDates;
+
+
+    var rows = getRows(allData, props.form.form.fields, areaFilter, numberFilter, dateFilter);
 
     const headCells = getHead(props.form.form.fields);
 
-    var sumRow = getSumRow(props.form.form.fields, props.allData);
+    var sumRow = getSumRow(props.form.form.fields, allData);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -268,7 +575,17 @@ function EnhancedTable(props) {
     return (
         <div className={classes.root}>
             <Paper className={classes.paper}>
-                <EnhancedTableToolbar numSelected={selected.length} formName={props.title} />
+                <EnhancedTableToolbar
+                    numSelected={selected.length}
+                    formName={props.title}
+                    fields={props.form.form.fields}
+                    areaNames={areaNames.areas}
+                    allNumbers={allNumbers}
+                    allDates={allDates}
+                    setAreaFilter={setAreaFilter}
+                    setNumberFilter={setNumberFilter}
+                    setDateFilter={setDateFilter}
+                />
                 <TableContainer>
                     <Table
                         className={classes.table}
@@ -291,7 +608,7 @@ function EnhancedTable(props) {
                                     const isItemSelected = isSelected(row.name);
                                     const cells = [];
                                     const rowValues = Object.values(row);
-                                    const rowIndex = props.allData[rows.indexOf(row)]._id;
+                                    const rowIndex = allData[rows.indexOf(row)]._id;
                                     rowValues.forEach(item => {
                                         cells.push(
                                             <TableCell align="right">
@@ -353,7 +670,7 @@ const GetFormTemplate = props => {
     const { data, loading } = useQuery(FORM_FIELDS, {
         variables: { "id": props }
     });
-    return { data, loading }
+    return { data, loading };
 
 }
 
@@ -361,36 +678,59 @@ const GetFormsData = props => {
     const { data, loading } = useQuery(FORM_ALLDATA, {
         variables: { "id": props }
     });
-    return { data, loading }
+    return { data, loading };
 }
+
+const GetAreaNames = props => {
+    const { data, loading } = useQuery(AREA_NAMES);
+    return { data, loading };
+}
+
+const GetAreaWithGivenPoint = props => {
+    const { data, loading } = useQuery(AREA_WITH_GIVEN_POINT, {
+        variables: { "lat": props.lat, "long": props.long }
+    });
+    return { data, loading };
+}
+
 
 export default function CCpage() {
     var formID = useParams().id;
     var formTemplate = GetFormTemplate(formID);
-
     var forms = GetFormsData(formID);
+    var areaNames = GetAreaNames();
 
-    var answersPage = <div>Loading</div>;
-    var detailsPage = <div>Loading</div>;
-    if (!formTemplate.loading && !forms.loading) {
+    var answersPage = (
+        <div>
+            <Typography align="center" variant="h5" gutterBottom>در حال بارگذاری...</Typography>
+            <Skeleton variant="rect" height={150} />
+        </div>
+    );
+    var detailsPage = (
+        <div>
+            <Typography align="center" variant="h5" gutterBottom>در حال بارگذاری...</Typography>
+            <Skeleton variant="rect" height={150} />
+        </div>
+    );
+    if (!formTemplate.loading && !forms.loading && !areaNames.loading) {
         if (!forms.data) {
             answersPage = (
                 <div>
-                    <Typography variant="h4" gutterBottom>
-                        No Answers Submitted For This Form.
+                    <Typography align="center" variant="h5" gutterBottom>
+                        هیچ پاسخی برای این فرم موجود نیست.
                     </Typography>
                 </div>
             );
             detailsPage = (
                 <div>
-                    <Typography variant="h4" gutterBottom>
-                        No Answers Submitted For This Form.
+                    <Typography align="center" variant="h5" gutterBottom>
+                        هیچ پاسخی برای این فرم موجود نیست.
                     </Typography>
                 </div>
             );
         }
         else {
-            answersPage = <EnhancedTable title={formTemplate.data.form.title} form={formTemplate.data} allData={forms.data.formAnswersWithGivenFormId} />;
+            answersPage = <EnhancedTable title={formTemplate.data.form.title} form={formTemplate.data} allData={forms.data.formAnswersWithGivenFormId} areaNames={areaNames.data} />;
             detailsPage = <FormDetails title={formTemplate.data.form.title} form={formTemplate.data} />;
         }
 

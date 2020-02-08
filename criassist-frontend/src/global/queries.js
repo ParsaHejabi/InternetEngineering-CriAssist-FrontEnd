@@ -41,3 +41,17 @@ query FormField($id: ID!){
   }
 }
 `);
+
+export const AREA_NAMES = gql(`
+query{
+  areas{
+    name
+  }
+}
+`);
+
+export const AREA_WITH_GIVEN_POINT = gql(`
+query AGP($lat: Float! , $long: Float!){
+  areaNamesOfGivenPoint(lat: $lat, long: $long)
+}
+`);
