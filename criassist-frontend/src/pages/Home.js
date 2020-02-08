@@ -33,24 +33,29 @@ const Home = props => {
   if (error) return null;
   if (loading) return <div>loading</div>;
   return (
-    <Grid container className={classes.container} spacing={2}>
-      {data.forms.map(item => (
-        <Grid key={item._id} item xs={3}>
-          <Card className={classes.root}>
-            <CardContent>
-              <Typography variant="h5" component="h2">
-                {item.title}
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Button size="small" component={Link} to={`/ccagent/${item._id}`}>
-                جزئیات
+    <div>
+      <Typography align="center" variant="h4" gutterBottom>
+        CriAssist Control Center Agent Dashboard
+      </Typography>
+      <Grid container className={classes.container} spacing={2}>
+        {data.forms.map(item => (
+          <Grid key={item._id} item xs={3}>
+            <Card className={classes.root}>
+              <CardContent>
+                <Typography variant="h5" component="h2">
+                  {item.title}
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small" component={Link} to={`/ccagent/${item._id}`}>
+                  جزئیات
               </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </div>
   );
 };
 

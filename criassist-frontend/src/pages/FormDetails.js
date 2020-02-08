@@ -47,7 +47,7 @@ export default function SimpleTable(props) {
 
     return (
         <div>
-            <Typography>{props.title}</Typography>
+            <Typography variant="h5" gutterBottom>{props.title}</Typography>
             <TableContainer component={Paper}>
                 <Table className={classes.table} aria-label="simple table">
                     <TableHead>

@@ -21,9 +21,11 @@ import { FORM_FIELDS, FORM_ALLDATA } from "../global/queries";
 function getRows(forms, fields) {
     const rows1 = [];
     var fieldsNames = fields.map(y => y.name);
-
+    var i = 1;
     forms.forEach(form => {
         const row = [];
+        row.push(i);
+        i++;
         fieldsNames.forEach(temp => {
             if (form.value[temp])
                 row.push(form.value[temp]);
@@ -61,6 +63,7 @@ function getSorting(order, orderBy) {
 
 function getHead(fields) {
     var headCells = [];
+    headCells.push(" ");
     if (fields) {
         fields.forEach(item => {
             headCells.push({
@@ -162,7 +165,7 @@ const EnhancedTableToolbar = props => {
 
     return (
         <div>
-            <Typography className={classes.title} variant="h6" id="tableTitle">
+            <Typography className={classes.title} variant="h5" id="tableTitle">
                 {formName}
             </Typography>
         </div>
@@ -197,6 +200,37 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
+function getSumRow(headFields, answers) {
+    var numericFields = headFields.find(element => element.type.includes("Number"))
+    var cells = [];
+    headFields.forEach(field => {
+        if (field.type.includes("Number")) {
+            var sum = 0;
+
+            answers.forEach(answer => {
+                if (answer.value[field.name]) {
+                    sum += parseFloat(answer.value[field.name]);
+                }
+            })
+
+            cells.push(
+                <TableCell align="right">
+                    <Typography variant="button" display="block" gutterBottom>
+                        {sum}
+                    </Typography>
+                </TableCell>
+            );
+        } else {
+            cells.push(
+                <TableCell align="right">
+                    {" "}
+                </TableCell>
+            );
+        }
+    });
+    return cells;
+}
+
 function EnhancedTable(props) {
     const classes = useStyles();
     const [order, setOrder] = React.useState('asc');
@@ -210,15 +244,12 @@ function EnhancedTable(props) {
 
     const headCells = getHead(props.form.form.fields);
 
+    var sumRow = getSumRow(props.form.form.fields, props.allData);
+
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
-    };
-
-    const handleClick = (event, name) => {
-        //TODO: show details
-        // <Redirect to={`/2/3`} />
     };
 
     const handleChangePage = (event, newPage) => {
@@ -250,9 +281,7 @@ function EnhancedTable(props) {
                             numSelected={selected.length}
                             order={order}
                             orderBy={orderBy}
-                            //onSelectAllClick={handleSelectAllClick}
                             onRequestSort={handleRequestSort}
-                            // rowCount={rows.length}
                             headCells={headCells}
                         />
                         <TableBody>
@@ -276,7 +305,6 @@ function EnhancedTable(props) {
 
                                         <TableRow
                                             hover
-                                            onClick={event => handleClick(event, row.name)}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             tabIndex={-1}
@@ -289,6 +317,16 @@ function EnhancedTable(props) {
                                         </TableRow>
                                     );
                                 })}
+                            {
+                                <TableRow>
+                                    <TableCell align="right">
+                                        <Typography variant="button" display="block" gutterBottom>
+                                            Sum
+                                        </Typography>
+                                    </TableCell>
+                                    {sumRow}
+                                </TableRow>
+                            }
                             {emptyRows > 0 && (
                                 <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
                                     <TableCell colSpan={6} />
@@ -328,9 +366,6 @@ const GetFormsData = props => {
 
 export default function CCpage() {
     var formID = useParams().id;
-    // const { data, loading } = useQuery(FORM_FIELDS, {
-    //     variables: { "id": formID }
-    // });
     var formTemplate = GetFormTemplate(formID);
 
     var forms = GetFormsData(formID);
@@ -338,9 +373,21 @@ export default function CCpage() {
     var answersPage = <div>Loading</div>;
     var detailsPage = <div>Loading</div>;
     if (!formTemplate.loading && !forms.loading) {
-        if (!forms) {
-            answersPage = <div>No Answers Submitted For This Form.</div>;
-            detailsPage = <div>No Answers Submitted For This Form.</div>;
+        if (!forms.data) {
+            answersPage = (
+                <div>
+                    <Typography variant="h4" gutterBottom>
+                        No Answers Submitted For This Form.
+                    </Typography>
+                </div>
+            );
+            detailsPage = (
+                <div>
+                    <Typography variant="h4" gutterBottom>
+                        No Answers Submitted For This Form.
+                    </Typography>
+                </div>
+            );
         }
         else {
             answersPage = <EnhancedTable title={formTemplate.data.form.title} form={formTemplate.data} allData={forms.data.formAnswersWithGivenFormId} />;
