@@ -484,9 +484,6 @@ function getSumRow(headFields, answers) {
 }
 
 function prepData(allData, allNumbers, allDates, locationFields, fields) {
-    console.log(allData);
-    console.log(fields)
-
     fields.forEach(field => {
         if (field.type.includes("Number"))
             allData.forEach(data => {

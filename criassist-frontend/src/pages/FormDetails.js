@@ -10,7 +10,8 @@ import Paper from '@material-ui/core/Paper';
 import { useParams } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { useQuery } from "@apollo/react-hooks";
-import { FORM_ANSWER } from "../global/queries";
+import { FORM_ANSWER, AREA_WITH_GIVEN_POINT } from "../global/queries";
+import moment from 'moment';
 
 const useStyles = makeStyles({
     table: {
@@ -25,20 +26,67 @@ const GetOneAnswer = props => {
     return { data, loading }
 }
 
+const GetAreaWithGivenPoint = props => {
+    const { data, loading } = useQuery(AREA_WITH_GIVEN_POINT, {
+        variables: { "lat": props.lat, "long": props.long }
+    });
+    return { data, loading };
+}
+
 export default function SimpleTable(props) {
     const classes = useStyles();
     var answerID = useParams().id;
     var answer = GetOneAnswer(answerID);
-
     var rows = [];
+
+    // var areaNames = GetAreaWithGivenPoint({
+    //     "lat": answer.data.formAnswer.value[key].lat,
+    //     "long": answer.data.formAnswer.value[key].long
+    // })
+
+
+    var locationFields = props.form.form.fields.filter(element => element.type.includes("Location"));
+    var finalAnswer = { value: {} };
+    locationFields.forEach(locationField => {
+        finalAnswer.value[locationField.name] = { "lat": 90, "long": 90 };
+        if (!answer.loading) {
+            finalAnswer = answer.data.formAnswer;
+        }
+        var areaNames = GetAreaWithGivenPoint({
+            "lat": finalAnswer.value[locationField.name].lat,
+            "long": finalAnswer.value[locationField.name].long
+        })
+        finalAnswer.value["Areas"] = [];
+        var temp = finalAnswer;
+        if (!areaNames.loading) {
+            temp.value["Areas"] = areaNames.data.areaNamesOfGivenPoint;
+            finalAnswer = temp;
+        }
+    })
+
+
+
     if (!answer.loading) {
         var fieldKeys = Object.keys(answer.data.formAnswer.value);
+        var index = fieldKeys.indexOf("Areas");
+        delete fieldKeys[index];
         fieldKeys.forEach(key => {
-            var fieldTitle = (props.form.form.fields).find(element => element.name === key)
+            var fieldTitle = (props.form.form.fields).find(element => element.name === key);
+            var cell = <TableCell align="right">{answer.data.formAnswer.value[key]}</TableCell>;
+
+            if (fieldTitle.type.includes("Location")) {
+                var areas = "";
+                if (finalAnswer.value["Areas"])
+                    finalAnswer.value["Areas"].forEach(area => areas = areas.concat(" ", area));
+                cell = <TableCell align="right">{areas}</TableCell>;
+            }
+            if (fieldTitle.type.includes("Date")) {
+                cell = <TableCell align="right">{moment(new Date(answer.data.formAnswer.value[key])).format('YYYY MMMM Do')}</TableCell>;
+            }
             rows.push(
                 <TableRow>
                     <TableCell align="right">{fieldTitle.title}</TableCell>
-                    <TableCell align="right">{answer.data.formAnswer.value[key]}</TableCell>
+                    {cell}
                 </TableRow>
             );
         })
