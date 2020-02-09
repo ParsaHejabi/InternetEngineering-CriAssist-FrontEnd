@@ -23,7 +23,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import CloseIcon from '@material-ui/icons/Close';
+import GetAppIcon from '@material-ui/icons/GetApp';
 import moment from 'moment';
+import FileSaver from 'file-saver';
 
 function getRows(forms, fields, areaFilter, numberFilter, dateFilter) {
     const rows1 = [];
@@ -565,6 +567,23 @@ function EnhancedTable(props) {
         setPage(0);
     };
 
+    const downloader = e => {
+        var content = []
+        var c = [];
+        headCells.forEach(cell => {
+            if (cell === " ") c.push("Row Numbers");
+            else c.push(cell.label);
+        })
+        c.push("\r\n");
+        content.push(c);
+        rows.forEach(row => {
+            row.push("\r\n");
+            content.push(row);
+        })
+        var blob = new Blob(content, { type: "text/plain;charset=utf-8" });
+        FileSaver.saveAs(blob, "info.csv");
+    }
+
     const isSelected = name => selected.indexOf(name) !== -1;
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
@@ -631,16 +650,24 @@ function EnhancedTable(props) {
                                         </TableRow>
                                     );
                                 })}
-                            {
-                                <TableRow>
-                                    <TableCell align="right">
-                                        <Typography variant="button" display="block" gutterBottom>
-                                            Sum
+
+                            <TableRow>
+                                <TableCell align="right">
+                                    <Typography variant="button" display="block" gutterBottom>
+                                        Sum
                                         </Typography>
+                                </TableCell>
+                                {sumRow}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell align="right">
+                                    <GetAppIcon onClick={downloader} />
+                                </TableCell>
+                                <TableCell>
+                                    Download Information as .csv file.
                                     </TableCell>
-                                    {sumRow}
-                                </TableRow>
-                            }
+                            </TableRow>
+
                             {emptyRows > 0 && (
                                 <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
                                     <TableCell colSpan={6} />

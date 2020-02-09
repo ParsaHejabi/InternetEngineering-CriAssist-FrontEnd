@@ -21,7 +21,7 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
 }
 
 const client = new ApolloClient({
-  uri: url
+  uri: `https://criassist.herokuapp.com/graphql`
 });
 
 ReactDOM.render(
