@@ -654,7 +654,7 @@ function EnhancedTable(props) {
                             <TableRow>
                                 <TableCell align="right">
                                     <Typography variant="button" display="block" gutterBottom>
-                                        Sum
+                                        جمع
                                         </Typography>
                                 </TableCell>
                                 {sumRow}
@@ -664,7 +664,7 @@ function EnhancedTable(props) {
                                     <GetAppIcon onClick={downloader} />
                                 </TableCell>
                                 <TableCell>
-                                    Download Information as .csv file.
+                                    دانلود فایل csv
                                     </TableCell>
                             </TableRow>
 
