@@ -12,8 +12,13 @@ import { Typography } from '@material-ui/core';
 import { useQuery } from "@apollo/react-hooks";
 import { FORM_ANSWER, AREA_WITH_GIVEN_POINT } from "../global/queries";
 import moment from 'moment';
+import { GoogleMap, withGoogleMap, withScriptjs, Marker } from 'react-google-maps';
 
 const useStyles = makeStyles({
+    root: {
+        flexGrow: 1,
+        padding: "5%"
+    },
     table: {
         minWidth: 650,
     },
@@ -33,21 +38,49 @@ const GetAreaWithGivenPoint = props => {
     return { data, loading };
 }
 
+class Map extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            marker_lat: 45.4211,
+            marker_lng: -75.6903
+        }
+    }
+    render() {
+        console.log(this.props.markers);
+        var markers = [];
+        this.props.markers.forEach(mark => {
+            markers.push(<Marker position={{ lat: mark.lng, lng: mark.lat }} />);
+        })
+        return (<GoogleMap
+            defaultZoom={14}
+            defaultCenter={{ lat: this.props.markers[0].lng, lng: this.props.markers[0].lat }}
+            onClick={(e) => {
+                console.log(e.latLng.lat());
+                console.log(e.latLng.lng());
+                this.props.setVal({ lat: e.latLng.lat(), lng: e.latLng.lng() })
+                this.setState({
+                    marker_lat: e.latLng.lat(),
+                    marker_lng: e.latLng.lng()
+                })
+            }}>
+            {markers}
+        </GoogleMap>);
+    }
+}
+
 export default function SimpleTable(props) {
     const classes = useStyles();
     var answerID = useParams().id;
     var answer = GetOneAnswer(answerID);
     var rows = [];
-
-    // var areaNames = GetAreaWithGivenPoint({
-    //     "lat": answer.data.formAnswer.value[key].lat,
-    //     "long": answer.data.formAnswer.value[key].long
-    // })
-
-
+    var showMap = false;
+    var markers = [];
+    var wmap = <div />;
     var locationFields = props.form.form.fields.filter(element => element.type.includes("Location"));
     var finalAnswer = { value: {} };
     locationFields.forEach(locationField => {
+        showMap = true;
         finalAnswer.value[locationField.name] = { "lat": 90, "long": 90 };
         if (!answer.loading) {
             finalAnswer = answer.data.formAnswer;
@@ -62,7 +95,20 @@ export default function SimpleTable(props) {
             temp.value["Areas"] = areaNames.data.areaNamesOfGivenPoint;
             finalAnswer = temp;
         }
+        markers.push({ lat: finalAnswer.value[locationField.name].lat, lng: finalAnswer.value[locationField.name].long });
+
     })
+
+    const WrappedMap = withScriptjs(withGoogleMap(props => <Map markers={markers} />));
+
+    if (showMap) {
+        wmap = (<WrappedMap
+            googleMapURL={`https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key=AIzaSyDjs0u02-62FMwrtxMxci5pc6PIubSyW28`}
+            loadingElement={<div style={{ height: `300px` }} />}
+            containerElement={<div style={{ height: `300px` }} />}
+            mapElement={<div style={{ height: `300px`, width: `90%` }} />}
+        />);
+    }
 
 
 
@@ -108,6 +154,7 @@ export default function SimpleTable(props) {
                     </TableBody>
                 </Table>
             </TableContainer>
+            {wmap}
         </div>
     );
 }
