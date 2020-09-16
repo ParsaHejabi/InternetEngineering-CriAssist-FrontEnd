@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Home from "../pages/Home";
 import CCAgent from "../pages/CCAgent.js";
 
-const Routes = props => {
+const Routes = () => {
   return (
     <Router>
       <Switch>

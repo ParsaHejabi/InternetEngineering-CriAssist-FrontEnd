@@ -6,7 +6,7 @@ import * as serviceWorker from "./serviceWorker";
 import Routes from "./global/routes";
 import { create } from "jss";
 import rtl from "jss-rtl";
-import { StylesProvider, jssPreset } from "@material-ui/core/styles";
+import { StylesProvider, jssPreset, ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 
 // Configure JSS
 const jss = create({ plugins: [...jssPreset().plugins, rtl()] });
@@ -21,13 +21,21 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
 }
 
 const client = new ApolloClient({
-  uri: `https://criassist.herokuapp.com/graphql`
+  uri: url
+});
+
+const darkTheme = createMuiTheme({
+  palette: {
+    type: 'dark',
+  },
 });
 
 ReactDOM.render(
   <ApolloProvider client={client}>
     <StylesProvider jss={jss}>
-      <Routes />
+      <ThemeProvider theme={darkTheme}>
+        <Routes />
+      </ThemeProvider>
     </StylesProvider>
   </ApolloProvider>,
   document.getElementById("root")

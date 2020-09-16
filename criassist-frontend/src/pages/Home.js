@@ -27,7 +27,7 @@ const useStyles = makeStyles({
   }
 });
 
-const Home = props => {
+const Home = () => {
   const classes = useStyles();
   const { data, error, loading } = useQuery(FORMS_LIST);
   if (error) return null;
