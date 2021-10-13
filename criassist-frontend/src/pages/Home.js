@@ -48,7 +48,7 @@ const Home = () => {
               </CardContent>
               <CardActions>
                 <Button size="small" component={Link} to={`/ccagent/${item._id}`}>
-                  جزئیات
+                  Details
               </Button>
               </CardActions>
             </Card>

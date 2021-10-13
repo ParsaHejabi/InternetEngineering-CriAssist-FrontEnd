@@ -665,7 +665,7 @@ function EnhancedTable(props) {
                                     <GetAppIcon onClick={downloader} />
                                 </TableCell>
                                 <TableCell>
-                                    دانلود فایل csv
+                                    Download CSV file
                                     </TableCell>
                             </TableRow>
 
@@ -742,14 +742,14 @@ export default function CCpage() {
             answersPage = (
                 <div>
                     <Typography align="center" variant="h5" gutterBottom>
-                        هیچ پاسخی برای این فرم موجود نیست.
+                        There are no answers for this specific form.
                     </Typography>
                 </div>
             );
             detailsPage = (
                 <div>
                     <Typography align="center" variant="h5" gutterBottom>
-                        هیچ پاسخی برای این فرم موجود نیست.
+                        There are no answers for this specific form.
                     </Typography>
                 </div>
             );
